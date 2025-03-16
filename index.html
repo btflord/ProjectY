@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 400px;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        p {
+            display: none;
+            font-size: 14px;
+            margin-top: 10px;
+            color: green;
+        }
+        .drop-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            cursor: pointer;
+            background: #fafafa;
+            transition: all 0.3s;
+        }
+        .drop-area:hover {
+            background: #f0f0f0;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        label {
+            display: block;
+            color: #007aff;
+            font-weight: 500;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        button {
+            background-color: #007aff;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #005ecb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Upload Files</h2>
+        <p id="statusMsg"></p>
+        <form>
+            <div class="drop-area" id="dropArea">Drag & Drop files here or click to select</div>
+            <input id="fileInput" type="file" name="Files" required multiple>
+            <label for="fileInput" id="fileInputLabel">Select Files</label>
+            <button id="submitBtn" type="submit">Upload</button>
+        </form>
+    </div>
+    <script>
+        let dropArea = document.getElementById("dropArea");
+        let fileInput = document.getElementById("fileInput");
+        let fileInputLabel = document.getElementById("fileInputLabel");
+        let statusMsg = document.getElementById("statusMsg");
+
+        dropArea.addEventListener("click", () => fileInput.click());
+
+        dropArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropArea.style.background = "#e0e0e0";
+        });
+
+        dropArea.addEventListener("dragleave", () => {
+            dropArea.style.background = "#fafafa";
+        });
+
+        dropArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropArea.style.background = "#fafafa";
+            fileInput.files = e.dataTransfer.files;
+            updateFileLabel();
+        });
+
+        fileInput.addEventListener("change", updateFileLabel);
+
+        function updateFileLabel() {
+            if (fileInput.files.length > 0) {
+                fileInputLabel.textContent = `${fileInput.files.length} files selected`;
+            } else {
+                fileInputLabel.textContent = "Select Files";
+            }
+        }
+
+        document.querySelector("form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            statusMsg.textContent = "Uploading...";
+            statusMsg.style.color = "#007aff";
+            statusMsg.style.display = "block";
+
+            await fetch("/upload", {
+                method: "POST",
+                body: new FormData(e.target),
+            }).then(response => {
+                statusMsg.textContent = "Successfully uploaded to drive";
+                statusMsg.style.color = "green";
+                fileInputLabel.textContent = "Select Files";
+            }).catch(error => {
+                statusMsg.textContent = "Upload failed: " + error;
+                statusMsg.style.color = "red";
+            });
+        });
+    </script>
+</body>
+</html>
